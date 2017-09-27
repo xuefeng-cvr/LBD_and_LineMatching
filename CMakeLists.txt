@@ -5,8 +5,7 @@
 PROJECT(LILIANTESTS)
 
 cmake_minimum_required(VERSION 2.8)
-set(OpenCV_DIR "/home/xfbupt/下载/opencv-2.4.3-rc/")
-find_package( OpenCV 3.3 REQUIRED )
+find_package( OpenCV REQUIRED )
 
 if(COMMAND cmake_policy)
   cmake_policy(SET CMP0003 NEW)
@@ -22,16 +21,10 @@ SET(CMAKE_MODULE_PATH $ENV{CMAKE_MODULE_PATH})
 #OPTION(USE_BIAS OFF)
 
 
-#IF(USE_BIAS)
-#INCLUDE_DIRECTORIES(${BIAS_INCLUDE_DIR} /usr/local/include/BIAS /usr/include/ImageMagick /usr/local/include/opencv2 ${WXWIDGETS_INCLUDE_DIR})
-#LINK_DIRECTORIES( ${BIAS_LINK_DIRECTORIES})
-#ENDIF(USE_BIAS)
 SET(OpenCV_INCLUDE_DIRS "/usr/local/include/opencv2")
 SET(OpenCV_LINK_DIRECTORIES "/usr/local/lib")
 INCLUDE_DIRECTORIES(${ARPACK_INCLUDE_DIR} /usr/local/include/opencv)
 LINK_DIRECTORIES(${ARPACK_LINK_DIR} /usr/local/lib)
-#SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${BIAS_CXX_FLAGS} -O0 -ggdb -std=c++11")
-#SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS}  ${BIAS_C_FLAGS} -O0 -ggdb -std=c++11")
 SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -O3") #-fno-omit-frame-pointer")
 SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=c++11 -O3") #-fno-omit-frame-pointer")
 
@@ -53,7 +46,7 @@ SET(LineMatchingLib_HEADER
 ADD_LIBRARY(LineMatchingLib
             ${LineMatchingLib_SRCS}
             ${LineMatchingLib_HEADER})
-#TARGET_LINK_LIBRARIES(LineMatchingLib  arpack /usr/lib/libsuperlu.so  BIASImageBaseD opencv_core opencv_highgui opencv_imgproc BIASDebugD BIASMathAlgoD BIASMathBaseD BIASFilterD arpack++) 
+
 TARGET_LINK_LIBRARIES(LineMatchingLib ${OpenCV_LIBS} arpack /usr/lib/x86_64-linux-gnu/libsuperlu.so arpack++) 
 
 
