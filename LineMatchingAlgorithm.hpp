@@ -8,23 +8,11 @@
 
 using namespace std;
 
-void usage(int argc, char **argv)
+int image_process(const char *img1, const char *img2, const char *out, bool saveLR = false)
 {
-	cout << "Usage: " << argv[0] << "  image1.png"
-		 << "  image2.png" << endl;
-}
-
-int main(int argc, char **argv)
-{
-	int ret = -1;
-	if (argc < 3)
-	{
-		usage(argc, argv);
-		return ret;
-	}
 	//load first image from file
-	std::string imageName1(argv[1]);
-	std::string imageName2(argv[2]);
+	std::string imageName1(img1);
+	std::string imageName2(img2);
 
 	cv::Mat leftImage;
 	cv::Mat rightImage;
@@ -94,8 +82,11 @@ int main(int argc, char **argv)
 		endPoint = cv::Point(int(linesInRight[i][0].endPointX), int(linesInRight[i][0].endPointY));
 		cv::line(rightColorImage, startPoint, endPoint, cv::Scalar(r, g, b));
 	}
-	imwrite("LinesInImage1.png", leftColorImage);
-	imwrite("LinesInImage2.png", rightColorImage);
+	if (saveLR)
+	{
+		imwrite("LinesInImage1.png", leftColorImage);
+		imwrite("LinesInImage2.png", rightColorImage);
+	}
 	//TODO enable after BIAS dependecies in PairwiseMatching have been removed
 	//  ///////////####################################################################
 	//  ///////////####################################################################
@@ -143,10 +134,10 @@ int main(int argc, char **argv)
 		startPoint = cv::Point(int(linesInLeft[lineIDLeft][0].startPointX), int(linesInLeft[lineIDLeft][0].startPointY));
 		endPoint = cv::Point(int(linesInRight[lineIDRight][0].startPointX + imageWidth), int(linesInRight[lineIDRight][0].startPointY));
 		cv::line(cvResultColorImage2, startPoint, endPoint, CV_RGB(r1[pair], g1[pair], b1[pair]), 1, cv::LINE_AA, 0);
-	}	
+	}
 	cv::addWeighted(cvResultColorImage1, 0.5, cvResultColorImage2, 0.5, 0.0, cvResultColorImage, -1);
 
-	cv::imwrite("LBDSG.png", cvResultColorImage);
+	cv::imwrite(out, cvResultColorImage);
 	cvResultColorImage.release();
 	cvResultColorImage1.release();
 	cvResultColorImage2.release();
