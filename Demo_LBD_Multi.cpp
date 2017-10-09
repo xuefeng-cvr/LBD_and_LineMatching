@@ -49,7 +49,7 @@ int main(int argc, char **argv)
         string out = OUT;
         img1 = img1 + files[i];
         img2 = img2 + files[i + 1];
-        out = out + files[i] + ">>>" + files[i + 1];
+        out = out + files[i] + "_" + files[i + 1];
         
         _file.open(out, ios::in);
         if(!_file)
