@@ -39,43 +39,42 @@ using namespace std;
 //this is used when get matching result from principal eigen vector
 #define WeightOfMeanEigenVec 0.1
 
-double getNormL2(double* arr,int size)
+double getNormL2(double *arr, int size)
 {
 	double result = 0;
 	for (int i = 0; i < size; i++)
 	{
-		result = result + arr[i];
+        result = result + arr[i] * arr[i];
 	}
-	return sqrt(result) == 0 ? 0 : sqrt(result);
+	return sqrt(result);
 }
-void arrayMultiRatio(double* arr,int size,double ratio)
+void arrayMultiRatio(double *arr, int size, double ratio)
 {
-	for(int i=0;i<size;i++)
+	for (int i = 0; i < size; i++)
 	{
 		arr[i] = arr[i] * ratio;
 	}
 }
-bool matSave(double** mat,int n,int m,const std::string & filename)
+bool matSave(double **mat, int n, int m, const std::string &filename)
 {
-	std::ofstream fs(filename.c_str() );
-	if(!fs)
+	std::ofstream fs(filename.c_str());
+	if (!fs)
 	{
 		return false;
 	}
 	else
 	{
-		fs<<(*mat);
+		fs << (*mat);
 		fs.close();
 	};
 	return true;
 }
 
-void PairwiseLineMatching::LineMatching(ScaleLines &linesInLeft, ScaleLines &linesInRight,
-										std::vector<unsigned int> &matchResult)
+void PairwiseLineMatching::LineMatching(ScaleLines &linesInLeft, ScaleLines &linesInRight, std::vector<unsigned int> &matchResult)
 {
 	//compute the global rotation angle of image pair;
 	globalRotationAngle_ = GlobalRotationOfImagePair_(linesInLeft, linesInRight);
-	BuildAdjacencyMatrix_(linesInLeft, linesInRight);
+    BuildAdjacencyMatrix_(linesInLeft, linesInRight);
 	MatchingResultFromPrincipalEigenvector_(linesInLeft, linesInRight, matchResult);
 }
 
@@ -86,7 +85,7 @@ double PairwiseLineMatching::GlobalRotationOfImagePair_(ScaleLines &linesInLeft,
 
 	//step 1: compute the angle histogram of lines in the left and right images
 	const unsigned int dim = 360 / ResolutionScale; //number of the bins of histogram
-	unsigned int index;						  //index in the histogram
+	unsigned int index;								//index in the histogram
 	double direction;
 	double scalar = 180 / (ResolutionScale * 3.1415927); //used when compute the index
 	double angleShift = (ResolutionScale * M_PI) / 360;  //make sure zero is the middle of the interval
@@ -116,26 +115,26 @@ double PairwiseLineMatching::GlobalRotationOfImagePair_(ScaleLines &linesInLeft,
 		angleHistRight[index]++;
 		lengthRight[index] += linesInRight[linenum][0].lineLength;
 	}
-	arrayMultiRatio(angleHistLeft.data(),angleHistLeft.size(),(1 / getNormL2(angleHistLeft.data(),angleHistLeft.size())));
-	arrayMultiRatio(angleHistRight.data(),angleHistRight.size(),(1 / getNormL2(angleHistRight.data(),angleHistRight.size())));
-	arrayMultiRatio(lengthLeft.data(),lengthLeft.size(),(1 / getNormL2(lengthLeft.data(),lengthLeft.size())));
-	arrayMultiRatio(lengthRight.data(),lengthRight.size(),(1 / getNormL2(lengthRight.data(),lengthRight.size())));
+	arrayMultiRatio(angleHistLeft.data(), angleHistLeft.size(), (1 / getNormL2(angleHistLeft.data(), angleHistLeft.size())));
+	arrayMultiRatio(angleHistRight.data(), angleHistRight.size(), (1 / getNormL2(angleHistRight.data(), angleHistRight.size())));
+	arrayMultiRatio(lengthLeft.data(), lengthLeft.size(), (1 / getNormL2(lengthLeft.data(), lengthLeft.size())));
+	arrayMultiRatio(lengthRight.data(), lengthRight.size(), (1 / getNormL2(lengthRight.data(), lengthRight.size())));
 
 	//  angleHistLeft.Save("histLeft.txt");
 	//  angleHistRight.Save("histRight.txt");
 
 	//step 2: find shift to decide the approximate global rotation
-	std::array<double, dim> difVec;  //the difference vector between left histogram and shifted right histogram
-	double minDif = 10;			 //the minimal angle histogram difference
-	double secondMinDif = 10;	//the second minimal histogram difference
-	unsigned int minShift;		 //the shift of right angle histogram when minimal difference achieved
-	unsigned int secondMinShift; //the shift of right angle histogram when second minimal difference achieved
+	std::array<double, dim> difVec; //the difference vector between left histogram and shifted right histogram
+	double minDif = 10;				//the minimal angle histogram difference
+	double secondMinDif = 10;		//the second minimal histogram difference
+	unsigned int minShift;			//the shift of right angle histogram when minimal difference achieved
+	unsigned int secondMinShift;	//the shift of right angle histogram when second minimal difference achieved
 
 	std::array<double, dim> lengthDifVec; //the length difference vector between left and right
-	double minLenDif = 10;			  //the minimal length difference
-	double secondMinLenDif = 10;	  //the second minimal length difference
-	unsigned int minLenShift;		  //the shift of right length vector when minimal length difference achieved
-	unsigned int secondMinLenShift;   //the shift of right length vector when the second minimal length difference achieved
+	double minLenDif = 10;				  //the minimal length difference
+	double secondMinLenDif = 10;		  //the second minimal length difference
+	unsigned int minLenShift;			  //the shift of right length vector when minimal length difference achieved
+	unsigned int secondMinLenShift;		  //the shift of right length vector when the second minimal length difference achieved
 
 	double normOfVec;
 	for (unsigned int shift = 0; shift < dim; shift++)
@@ -148,7 +147,7 @@ double PairwiseLineMatching::GlobalRotationOfImagePair_(ScaleLines &linesInLeft,
 			lengthDifVec[j] = lengthLeft[j] - lengthRight[index];
 		}
 		//find the minShift and secondMinShift for angle histogram
-		normOfVec = getNormL2(difVec.data(),difVec.size());
+		normOfVec = getNormL2(difVec.data(), difVec.size());
 		if (normOfVec < secondMinDif)
 		{
 			if (normOfVec < minDif)
@@ -165,7 +164,7 @@ double PairwiseLineMatching::GlobalRotationOfImagePair_(ScaleLines &linesInLeft,
 			}
 		}
 		//find the minLenShift and secondMinLenShift of length vector
-		normOfVec = getNormL2(lengthDifVec.data(),lengthDifVec.size());
+		normOfVec = getNormL2(lengthDifVec.data(), lengthDifVec.size());
 		if (normOfVec < secondMinLenDif)
 		{
 			if (normOfVec < minLenDif)
@@ -187,7 +186,7 @@ double PairwiseLineMatching::GlobalRotationOfImagePair_(ScaleLines &linesInLeft,
 	if (minDif < AcceptableAngleHistogramDifference && minLenDif < AcceptableLengthVectorDifference)
 	{
 		rotationAngle = minShift * ResolutionScale;
-		if (rotationAngle > 90 && 360 - rotationAngle > 90)
+        if (rotationAngle > 90 && 360 - rotationAngle > 90)
 		{
 			//In most case we believe the rotation angle between two image pairs should belong to [-Pi/2, Pi/2]
 			rotationAngle = rotationAngle - 180;
@@ -206,7 +205,7 @@ void PairwiseLineMatching::BuildAdjacencyMatrix_(ScaleLines &linesInLeft, ScaleL
 	const unsigned int numLineRight = linesInRight.size();
 	/*first step, find nodes which are possible correspondent lines in the left and right images according to
 	 *their direction, gray value  and gradient magnitude.
-	 */
+     */
 	nodesList_.clear();
 	double angleDif;
 	double lengthDif;
@@ -216,22 +215,6 @@ void PairwiseLineMatching::BuildAdjacencyMatrix_(ScaleLines &linesInLeft, ScaleL
 
 	std::vector<float> desLeft;
 	std::vector<float> desRight;
-
-	// //store descriptor for debug
-	//	Matrix<double> desCripLeft(numLineLeft,dimOfDes);
-	//	Matrix<double> desCripRight(numLineRight,dimOfDes);
-	//	for(unsigned int i=0; i<numLineLeft; i++){
-	//		for(unsigned int j=0; j<dimOfDes; j++){
-	//			desCripLeft[i][j] = linesInLeft[i].decriptor[j];
-	//		}
-	//	}
-	//	for(unsigned int i=0; i<numLineRight; i++){
-	//		for(unsigned int j=0; j<dimOfDes; j++){
-	//			desCripRight[i][j] = linesInRight[i].decriptor[j];
-	//		}
-	//	}
-	//	desCripLeft.Save("DescriptorLeft.txt");
-	//	desCripRight.Save("DescriptorRight.txt");
 
 	//first compute descriptor distances
 
@@ -256,7 +239,7 @@ void PairwiseLineMatching::BuildAdjacencyMatrix_(ScaleLines &linesInLeft, ScaleL
 					dis = 0;
 					while (desR < desMax)
 					{
-						temp = *(desL++) - *(desR++);
+                        temp = *(desL++) - *(desR++); //discriptor minus save to temp
 						dis += temp * temp;
 					}
 					dis = sqrt(dis);
@@ -269,6 +252,7 @@ void PairwiseLineMatching::BuildAdjacencyMatrix_(ScaleLines &linesInLeft, ScaleL
 			desDisMat[idL][idR] = minDis;
 		} //end for(int idR=0; idR<rightSize; idR++)
 	}	 // end for(int idL=0; idL<leftSize; idL++)
+
 
 	for (unsigned int i = 0; i < numLineLeft; i++)
 	{
@@ -316,7 +300,7 @@ void PairwiseLineMatching::BuildAdjacencyMatrix_(ScaleLines &linesInLeft, ScaleL
 
 	/*Second step, build the adjacency matrix which reflect the geometric constraints between nodes.
 	 *The matrix is stored in the Compressed Sparse Column(CSC) format.
-	 */
+     */
 	unsigned int dim = nodesList_.size(); // Dimension of the problem.
 
 	//std::array<double, dim_temp> adjacenceVec;
@@ -338,17 +322,17 @@ void PairwiseLineMatching::BuildAdjacencyMatrix_(ScaleLines &linesInLeft, ScaleL
 	 *the pairwise geometric information which has been computed and will be reused many times
 	 *latter. The reduction of computational time is at the expenses of memory consumption.
 	 */
-	unsigned int bComputedLeft[numLineLeft][numLineLeft]; //flag to show whether the ith pair of left image has already been computed.
-	memset(bComputedLeft,0,numLineLeft*numLineLeft);
-	double intersecRatioLeft[numLineLeft][numLineLeft]; //the ratio of intersection point and the line in the left pair
-	double projRatioLeft[numLineLeft][numLineLeft];		//the point to line distance divided by the projected length of line in the left pair.
+    unsigned int bComputedLeft[numLineLeft][numLineLeft]; //flag to show whether the ith pair of left image has already been computed.
+    memset(bComputedLeft, 0, numLineLeft * numLineLeft * sizeof(unsigned int));
+    double intersecRatioLeft[numLineLeft][numLineLeft]; //the ratio of intersection point and the line in the left pair
+    double projRatioLeft[numLineLeft][numLineLeft];		//the point to line distance divided by the projected length of line in the left pair.
 
-	unsigned int bComputedRight[numLineLeft][numLineLeft]; //flag to show whether the ith pair of right image has already been computed.
-	memset(bComputedRight,0,numLineLeft*numLineLeft);
-	double intersecRatioRight[numLineLeft][numLineLeft]; //the ratio of intersection point and the line in the right pair
-	double projRatioRight[numLineLeft][numLineLeft];	 //the point to line distance divided by the projected length of line in the right pair.
+    unsigned int bComputedRight[numLineRight][numLineRight]; //flag to show whether the ith pair of right image has already been computed.
+    memset(bComputedRight, 0, numLineRight * numLineRight * sizeof(unsigned int));
+    double intersecRatioRight[numLineRight][numLineRight]; //the ratio of intersection point and the line in the right pair
+    double projRatioRight[numLineRight][numLineRight];	 //the point to line distance divided by the projected length of line in the right pair.
 
-	unsigned int idLeft1, idLeft2;						//the id of lines in the left pair
+    unsigned int idLeft1, idLeft2;						//the id of lines in the left pair
 	unsigned int idRight1, idRight2;					//the id of lines in the right pair
 	double relativeAngleLeft, relativeAngleRight;		//the relative angle of each line pair
 	double gradientMagRatioLeft, gradientMagRatioRight; //the ratio of gradient magnitude of lines in each pair
@@ -365,12 +349,14 @@ void PairwiseLineMatching::BuildAdjacencyMatrix_(ScaleLines &linesInLeft, ScaleL
 	double disX, disY;
 	double disS, disE;
 	double similarity;
+
+
 	for (unsigned int j = 0; j < dim; j++)
 	{ //column
 		idLeft1 = nodesList_[j].leftLineID;
 		idRight1 = nodesList_[j].rightLineID;
 		for (unsigned int i = j + 1; i < dim; i++)
-		{ //row
+        { //row
 			idLeft2 = nodesList_[i].leftLineID;
 			idRight2 = nodesList_[i].rightLineID;
 			if ((idLeft1 == idLeft2) || (idRight1 == idRight2))
@@ -398,10 +384,7 @@ void PairwiseLineMatching::BuildAdjacencyMatrix_(ScaleLines &linesInLeft, ScaleL
 			//check whether the geometric information of pairs (idLeft1,idLeft2) and (idRight1,idRight2) have already been computed.
 			if (!bComputedLeft[idLeft1][idLeft2])
 			{ //have not been computed yet
-				/*compute the intersection point of segment i and j.
-				 *a1x + b1y + c1 = 0 and a2x + b2y + c2 = 0.
-				 *x = (c2b1 - c1b2)/(a1b2 - a2b1) and
-				 *y = (c1a2 - c2a1)/(a1b2 - a2b1)*/
+
 				a1 = linesInLeft[idLeft1][0].endPointY - linesInLeft[idLeft1][0].startPointY;					//disY
 				b1 = linesInLeft[idLeft1][0].startPointX - linesInLeft[idLeft1][0].endPointX;					//-disX
 				c1 = (0 - b1 * linesInLeft[idLeft1][0].startPointY) - a1 * linesInLeft[idLeft1][0].startPointX; //disX*sy - disY*sx
@@ -461,82 +444,84 @@ void PairwiseLineMatching::BuildAdjacencyMatrix_(ScaleLines &linesInLeft, ScaleL
 				pRatio1L = projRatioLeft[idLeft1][idLeft2];
 				pRatio2L = projRatioLeft[idLeft2][idLeft1];
 			}
-			if (!bComputedRight[idRight1][idRight2])
-			{																										//have not been computed yet
-				a1 = linesInRight[idRight1][0].endPointY - linesInRight[idRight1][0].startPointY;					//disY
-				b1 = linesInRight[idRight1][0].startPointX - linesInRight[idRight1][0].endPointX;					//-disX
-				c1 = (0 - b1 * linesInRight[idRight1][0].startPointY) - a1 * linesInRight[idRight1][0].startPointX; //disX*sy - disY*sx
-				length1 = linesInRight[idRight1][0].lineLength;
+            if (!bComputedRight[idRight1][idRight2])
+            {
+                //have not been computed yet
+                a1 = linesInRight[idRight1][0].endPointY - linesInRight[idRight1][0].startPointY;					//disY
+                b1 = linesInRight[idRight1][0].startPointX - linesInRight[idRight1][0].endPointX;					//-disX
+                c1 = (0 - b1 * linesInRight[idRight1][0].startPointY) - a1 * linesInRight[idRight1][0].startPointX; //disX*sy - disY*sx
+                length1 = linesInRight[idRight1][0].lineLength;
 
-				a2 = linesInRight[idRight2][0].endPointY - linesInRight[idRight2][0].startPointY;					//disY
-				b2 = linesInRight[idRight2][0].startPointX - linesInRight[idRight2][0].endPointX;					//-disX
-				c2 = (0 - b2 * linesInRight[idRight2][0].startPointY) - a2 * linesInRight[idRight2][0].startPointX; //disX*sy - disY*sx
-				length2 = linesInRight[idRight2][0].lineLength;
+                a2 = linesInRight[idRight2][0].endPointY - linesInRight[idRight2][0].startPointY;					//disY
+                b2 = linesInRight[idRight2][0].startPointX - linesInRight[idRight2][0].endPointX;					//-disX
+                c2 = (0 - b2 * linesInRight[idRight2][0].startPointY) - a2 * linesInRight[idRight2][0].startPointX; //disX*sy - disY*sx
+                length2 = linesInRight[idRight2][0].lineLength;
 
-				a1b2_a2b1 = a1 * b2 - a2 * b1;
-				if (fabs(a1b2_a2b1) < 0.001)
-				{ //two lines are almost parallel
-					iRatio1R = Inf;
-					iRatio2R = Inf;
-				}
-				else
-				{
-					interSectionPointX = (c2 * b1 - c1 * b2) / a1b2_a2b1;
-					interSectionPointY = (c1 * a2 - c2 * a1) / a1b2_a2b1;
-					//r1 = (s1I*s1e1)/(|s1e1|*|s1e1|)
-					disX = interSectionPointX - linesInRight[idRight1][0].startPointX;
-					disY = interSectionPointY - linesInRight[idRight1][0].startPointY;
-					len = disY * a1 - disX * b1; //because b1=-disX
-					iRatio1R = len / (length1 * length1);
-					//r2 = (s2I*s2e2)/(|s2e2|*|s2e2|)
-					disX = interSectionPointX - linesInRight[idRight2][0].startPointX;
-					disY = interSectionPointY - linesInRight[idRight2][0].startPointY;
-					len = disY * a2 - disX * b2; //because b2=-disX
-					iRatio2R = len / (length2 * length2);
-				}
-				intersecRatioRight[idRight1][idRight2] = iRatio1R;
-				intersecRatioRight[idRight2][idRight1] = iRatio2R; //line order changed
-				/*project the end points of line1 onto line2 and compute their distances to line2;
-				 */
-				disS = fabs(a2 * linesInRight[idRight1][0].startPointX + b2 * linesInRight[idRight1][0].startPointY + c2) / length2;
-				disE = fabs(a2 * linesInRight[idRight1][0].endPointX + b2 * linesInRight[idRight1][0].endPointY + c2) / length2;
-				pRatio1R = (disS + disE) / length1;
-				projRatioRight[idRight1][idRight2] = pRatio1R;
+                a1b2_a2b1 = a1 * b2 - a2 * b1;
+                if (fabs(a1b2_a2b1) < 0.001)
+                { //two lines are almost parallel
+                    iRatio1R = Inf;
+                    iRatio2R = Inf;
+                }
+                else
+                {
+                    interSectionPointX = (c2 * b1 - c1 * b2) / a1b2_a2b1;
+                    interSectionPointY = (c1 * a2 - c2 * a1) / a1b2_a2b1;
+                    //r1 = (s1I*s1e1)/(|s1e1|*|s1e1|)
+                    disX = interSectionPointX - linesInRight[idRight1][0].startPointX;
+                    disY = interSectionPointY - linesInRight[idRight1][0].startPointY;
+                    len = disY * a1 - disX * b1; //because b1=-disX
+                    iRatio1R = len / (length1 * length1);
+                    //r2 = (s2I*s2e2)/(|s2e2|*|s2e2|)
+                    disX = interSectionPointX - linesInRight[idRight2][0].startPointX;
+                    disY = interSectionPointY - linesInRight[idRight2][0].startPointY;
+                    len = disY * a2 - disX * b2; //because b2=-disX
+                    iRatio2R = len / (length2 * length2);
+                }
+                intersecRatioRight[idRight1][idRight2] = iRatio1R;
+                intersecRatioRight[idRight2][idRight1] = iRatio2R; //line order changed
+                /*project the end points of line1 onto line2 and compute their distances to line2;
+                 */
+                disS = fabs(a2 * linesInRight[idRight1][0].startPointX + b2 * linesInRight[idRight1][0].startPointY + c2) / length2;
+                disE = fabs(a2 * linesInRight[idRight1][0].endPointX + b2 * linesInRight[idRight1][0].endPointY + c2) / length2;
+                pRatio1R = (disS + disE) / length1;
+                projRatioRight[idRight1][idRight2] = pRatio1R;
 
-				/*project the end points of line2 onto line1 and compute their distances to line1;
-				 */
-				disS = fabs(a1 * linesInRight[idRight2][0].startPointX + b1 * linesInRight[idRight2][0].startPointY + c1) / length1;
-				disE = fabs(a1 * linesInRight[idRight2][0].endPointX + b1 * linesInRight[idRight2][0].endPointY + c1) / length1;
-				pRatio2R = (disS + disE) / length2;
-				projRatioRight[idRight2][idRight1] = pRatio2R;
+                /*project the end points of line2 onto line1 and compute their distances to line1;
+                 */
+                disS = fabs(a1 * linesInRight[idRight2][0].startPointX + b1 * linesInRight[idRight2][0].startPointY + c1) / length1;
+                disE = fabs(a1 * linesInRight[idRight2][0].endPointX + b1 * linesInRight[idRight2][0].endPointY + c1) / length1;
+                pRatio2R = (disS + disE) / length2;
+                projRatioRight[idRight2][idRight1] = pRatio2R;
 
-				//mark them as computed
-				bComputedRight[idRight1][idRight2] = true;
-				bComputedRight[idRight2][idRight1] = true;
-			}
-			else
-			{ //read these information from matrix;
-				iRatio1R = intersecRatioRight[idRight1][idRight2];
-				iRatio2R = intersecRatioRight[idRight2][idRight1];
-				pRatio1R = projRatioRight[idRight1][idRight2];
-				pRatio2R = projRatioRight[idRight2][idRight1];
-			}
-			pRatioDif = MIN(fabs(pRatio1L - pRatio1R), fabs(pRatio2L - pRatio2R));
+                //mark them as computed
+                bComputedRight[idRight1][idRight2] = true;
+                bComputedRight[idRight2][idRight1] = true;
+            }
+            else
+            { //read these information from matrix;
+                iRatio1R = intersecRatioRight[idRight1][idRight2];
+                iRatio2R = intersecRatioRight[idRight2][idRight1];
+                pRatio1R = projRatioRight[idRight1][idRight2];
+                pRatio2R = projRatioRight[idRight2][idRight1];
+            }
+            pRatioDif = MIN(fabs(pRatio1L - pRatio1R), fabs(pRatio2L - pRatio2R));
+
 			if (pRatioDif > ProjectionRationDifThreshold)
 			{
 				continue; //the projection length ratio difference is too large;
 			}
 			if ((iRatio1L == Inf) || (iRatio2L == Inf) || (iRatio1R == Inf) || (iRatio2R == Inf))
-			{
+            {
 				//don't consider the intersection length ratio
 				similarity = 4 - desDisMat[idLeft1][idRight1] / DescriptorDifThreshold - desDisMat[idLeft2][idRight2] / DescriptorDifThreshold - pRatioDif / ProjectionRationDifThreshold - relativeAngleDif / RelativeAngleDifferenceThreshold;
-				adjacenceVec[(2 * dim - j - 1) * j / 2 + i] = similarity;
+                adjacenceVec[(2 * dim - j - 1) * j / 2 + i] = similarity;
 				nnz++;
 				//				testMat[i][j] = similarity;
 				//				testMat[j][i] = similarity;
 			}
 			else
-			{
+            {
 				iRatioDif = MIN(fabs(iRatio1L - iRatio1R), fabs(iRatio2L - iRatio2R));
 				if (iRatioDif > IntersectionRationDifThreshold)
 				{
@@ -550,8 +535,7 @@ void PairwiseLineMatching::BuildAdjacencyMatrix_(ScaleLines &linesInLeft, ScaleL
 				//				testMat[j][i] = similarity;
 			}
 		}
-	}
-
+    }
 	// pointer to an array that stores the nonzero elements of Adjacency matrix.
 	double *adjacenceMat = new double[nnz];
 	// pointer to an array that stores the row indices of the non-zeros in adjacenceMat.
@@ -574,38 +558,15 @@ void PairwiseLineMatching::BuildAdjacencyMatrix_(ScaleLines &linesInLeft, ScaleL
 			}
 		}
 		pcol[j + 1] = idOfNNZ;
-	}
-
-	//	testMat.Save("testmat.txt");
-
-	//	cout<<"CCS Mat"<<endl<<"adjacenceMat= ";
-	//	for(int i=0; i<nnz; i++){
-	//		cout<<adjacenceMat[i]<<", ";
-	//	}
-	//	cout<<endl<<"irow = ";
-	//	for(int i=0; i<nnz; i++){
-	//		cout<<irow[i]<<", ";
-	//	}
-	//	cout<<endl<<"pcol = ";
-	//	for(int i=0; i<dim+1; i++){
-	//		cout<<pcol[i]<<", ";
-	//	}
-	//	cout<<endl;
-
+    }
 	/*Third step, solve the principal eigenvector of the adjacency matrix using Arpack lib.
 	 */
 	ARluSymMatrix<double> arMatrix(dim, nnz, adjacenceMat, irow, pcol);
 	ARluSymStdEig<double> dprob(2, arMatrix, "LM"); // Defining what we need: the first eigenvector of arMatrix with largest magnitude.
 	// Finding eigenvalues and eigenvectors.
 	dprob.FindEigenvectors();
-	cout << "Number of 'converged' eigenvalues  : " << dprob.ConvergedEigenvalues() << endl;
-	//  cout<<"eigenvalue is = "<<dprob.Eigenvalue(0)<<", and "<<dprob.Eigenvalue(1)<<endl;
-	//  if(dprob.EigenvectorsFound()){
-	//  	for(unsigned int j=0; j<dim; j++){
-	//  		cout<< dprob.Eigenvector(1,j) <<", ";
-	//  	}
-	//  	cout<<endl;
-	//  }
+    cout << "Number of 'converged' eigenvalues  : " << dprob.ConvergedEigenvalues() << endl;
+
 	eigenMap_.clear();
 
 	double meanEigenVec = 0;
@@ -648,7 +609,7 @@ void PairwiseLineMatching::MatchingResultFromPrincipalEigenvector_(ScaleLines &l
 	resMap.open(fileNameMap.str().c_str(), std::ios::out);
 
 	double mat[linesInLeft.size()][linesInRight.size()];
-	memset(mat,0,linesInLeft.size()*linesInRight.size());
+	memset(mat, 0, linesInLeft.size() * linesInRight.size());
 	for (iter = eigenMap_.begin(); iter != eigenMap_.end(); iter++)
 	{
 		id = iter->second;
@@ -726,5 +687,5 @@ void PairwiseLineMatching::MatchingResultFromPrincipalEigenvector_(ScaleLines &l
 		}
 	} //end while(stillLoop)
 	matchResult = matchRet1;
-	cout << "matchRet1.size" << matchRet1.size() << ", minOfEigenVec_= " << minOfEigenVec_ << endl;
+	cout << "matchRet1.size=" << matchRet1.size() << ", minOfEigenVec_= " << minOfEigenVec_ << endl;
 }
