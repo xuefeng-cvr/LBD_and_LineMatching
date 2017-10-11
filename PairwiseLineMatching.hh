@@ -10,6 +10,7 @@
 #include <map>
 #include <opencv2/core/core.hpp>
 #include "LineDescriptor.hh"
+#include <string>
 
 
 //each node in the graph is a possible line matching pair in the left and right image
@@ -36,8 +37,8 @@ class PairwiseLineMatching
 {
 public:
     PairwiseLineMatching(){};
-    void LineMatching(ScaleLines &linesInLeft,ScaleLines &linesInRight,
-    		std::vector<unsigned int> &matchResult);
+    void LineMatching(ScaleLines &linesInLeft,ScaleLines &linesInRight, std::vector<unsigned int> &matchResult);
+    ~PairwiseLineMatching(){};
 
 private:
     /* Compute the approximate global rotation angle between image pair(i.e. the left and right images).
