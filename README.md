@@ -10,7 +10,7 @@ https://github.com/mtamburrano/LBD_Descriptor
 
  - OpenCV
  - Arpack
- - superlu
+ - Lapack
 
 
 #### 实现功能
